@@ -1,0 +1,35 @@
+server:
+  port: 8085
+
+logging:
+  level:
+    org:
+      springframework:
+        web: ERROR
+
+jwt:
+  secret: 86dc1443b4e0c83dcda17c4e4635c16517bac495e5cb7675eefcb650222fc70e7f697b5d5c75992ff9e2c4ecc5092121e3990e8abdf3879337c8195a27f986cfc1390319cb67dcc24f88e643e78a999e8d2b6fa8a9dde995ebf5b122ca999b3f673dddf4a00f20e73c23e90f8c19f4ca34655ff4e507ed2fe4af4f6f93b36a2c97866540409af95227d8a20ee302ed050a15a061105d8df94bbe04921624fe07d859272c69394fecaa00e4f76784b25e33ebd6afd9a24b7e80e8dc3932e3c67cc5d2e6107359f63fd0abf9387484eac455905b84d8d0307e93cc16bdb3338ff8fb5fd043f5d365139f7c9533a60039248ebf1024cdbf64bab78bd90838f007d3
+  lifetime: 360m
+  refreshTokenLifetime: 720m
+
+spring:
+  application:
+    name: tms
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/tmsdb
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: true
+    defer-datasource-initialization: true
