@@ -7,6 +7,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -30,24 +31,42 @@ public class Task {
     private String description;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Status status = Status.STATUS_PENDING;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Priority priority;
 
-    @OneToMany(mappedBy = "task", cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+            name = "tasks_comments",
+            joinColumns = { @JoinColumn(referencedColumnName = "id") },
+            inverseJoinColumns = { @JoinColumn(referencedColumnName = "id") }
+    )
     private Set<Comment> comments = new HashSet<>();
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "author_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Author author;
+    @ManyToOne(cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "user_admin_id")
+    private User author;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "contractor_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Contractor contractor;
+    @ManyToOne(cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "user_assignee_id")
+    private User assignee;
 
     @Column(nullable = false)
     private Date date;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return Objects.equals(id, task.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

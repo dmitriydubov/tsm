@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.util.Date;
+import java.util.*;
 
 @Entity
 @Getter
@@ -27,8 +27,20 @@ public class Comment {
     @Column(nullable = false)
     private Date date;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "task_id")
+    @ManyToMany(mappedBy = "comments")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Task task;
+    private Set<Task> tasks = new HashSet<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Comment comment = (Comment) o;
+        return Objects.equals(id, comment.id) && Objects.equals(message, comment.message) && Objects.equals(date, comment.date);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, message, date);
+    }
 }

@@ -1,6 +1,6 @@
 package com.example.tms.config;
 
-import com.example.tms.security.model.RefreshToken;
+import com.example.tms.model.RefreshToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
