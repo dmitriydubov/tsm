@@ -1,8 +1,6 @@
 package com.example.tms.service.impl;
 
-import com.example.tms.dto.TaskRemoveRequest;
-import com.example.tms.dto.TaskRequest;
-import com.example.tms.dto.TaskResponse;
+import com.example.tms.dto.*;
 import com.example.tms.error.NoSuchAssigneeException;
 import com.example.tms.model.*;
 import com.example.tms.repository.CommentsRepository;
@@ -11,8 +9,14 @@ import com.example.tms.repository.UserRepository;
 import com.example.tms.service.TaskService;
 import com.example.tms.service.ValidationService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -20,9 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -98,6 +100,30 @@ public class TaskServiceImpl implements TaskService {
         );
     }
 
+    @Override
+    public ViewTaskResponse getTask(
+            @Valid @NotEmpty @Pattern(regexp = "\\d+", message = "id задачи должен состоять из целого числа")
+            String taskId
+    ) {
+        var task = validationService.validateByExistingTaskAndGet(Long.parseLong(taskId));
+        List<CommentDTO> commentDTOList = createCommentDTOList(task);
+
+        return createViewTaskResponse(task, commentDTOList);
+    }
+
+    @Override
+    public Page<ViewTaskResponse> getAssigneeTask(String userId, String page, String size) {
+        Pageable pageable = PageRequest.of(
+                Integer.parseInt(page), Integer.parseInt(size), Sort.by(Sort.Direction.ASC, "id")
+        );
+
+        return taskRepository.findByAssigneeId(Long.parseLong(userId), pageable).map(task -> {
+                List<CommentDTO> commentDTOList = createCommentDTOList(task);
+
+                return createViewTaskResponse(task, commentDTOList);
+        });
+    }
+
     private Task update(TaskRequest taskRequest, Task taskToUpdate, User taskAuthor, User taskAssignee) {
         Task savedTask;
         taskToUpdate.setTitle(taskRequest.title());
@@ -157,6 +183,32 @@ public class TaskServiceImpl implements TaskService {
                 .assignee(taskAssignee)
                 .date(new Date())
                 .build();
+    }
+
+    private List<CommentDTO> createCommentDTOList(Task task) {
+        return task.getComments().stream()
+                .map(comment -> new CommentDTO(
+                        String.valueOf(comment.getId()),
+                        comment.getMessage(),
+                        formatDate(comment.getDate()))
+                )
+                .toList();
+    }
+
+    private ViewTaskResponse createViewTaskResponse(Task task, List<CommentDTO> commentDTOList) {
+        return new ViewTaskResponse(
+                String.valueOf(task.getId()),
+                task.getTitle(),
+                task.getDescription(),
+                task.getStatus().toString(),
+                task.getPriority().toString(),
+                new ArrayList<>() {{
+                    addAll(commentDTOList);
+                }},
+                task.getAuthor().getEmail(),
+                task.getAssignee().getEmail(),
+                formatDate(task.getDate())
+        );
     }
 
     private Priority getPriorityFromTaskRequest(TaskRequest taskRequest) {
