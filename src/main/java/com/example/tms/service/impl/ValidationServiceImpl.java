@@ -50,6 +50,14 @@ public class ValidationServiceImpl implements ValidationService {
     }
 
     @Override
+    public void validateIsTaskExist(Long taskId) {
+        taskRepository.findById(taskId).ifPresent((task -> {
+            log.error("Ошибка при добавлении задачи id:{}. Задачи с таким id уже в базе данных", taskId);
+            throw new InvalidUserTaskException(String.format("Задача с id %s уже существует", taskId));
+        }));
+    }
+
+    @Override
     public void validateTaskByAssignee(User user, Long taskId) {
         var currentTask = taskRepository.findById(taskId).orElseThrow();
         var taskAssignee = currentTask.getAssignee();

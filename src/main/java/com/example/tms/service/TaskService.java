@@ -4,7 +4,6 @@ import com.example.tms.dto.TaskRemoveRequest;
 import com.example.tms.dto.TaskRequest;
 import com.example.tms.dto.TaskResponse;
 import com.example.tms.dto.ViewTaskResponse;
-import com.example.tms.model.Task;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -23,5 +22,5 @@ public interface TaskService {
             String taskId
     );
 
-    Page<ViewTaskResponse> getAssigneeTask(String userId, String page, String size);
+    Page<ViewTaskResponse> getUserTasks(String userId, String taskRole, String page, String size);
 }

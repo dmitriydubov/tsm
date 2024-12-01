@@ -11,5 +11,7 @@ public interface ValidationService {
 
     Task validateByExistingTaskAndGet(Long taskId);
 
+    void validateIsTaskExist(Long taskId);
+
     void validateTaskByAssignee(User user, Long taskId);
 }

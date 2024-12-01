@@ -2,6 +2,7 @@ package com.example.tms.service.impl;
 
 import com.example.tms.dto.*;
 import com.example.tms.error.NoSuchAssigneeException;
+import com.example.tms.error.NoSuchTaskMaintainer;
 import com.example.tms.model.*;
 import com.example.tms.repository.CommentsRepository;
 import com.example.tms.repository.TaskRepository;
@@ -42,6 +43,7 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse createTask(@Valid TaskRequest taskRequest) {
         var currentAdmin = getCurrentUser();
         validationService.validateByAdminRole(currentAdmin);
+        validationService.validateIsTaskExist(Long.valueOf(taskRequest.taskId()));
 
         var taskAssignee = getCurrentAssignee(taskRequest);
 
@@ -112,16 +114,26 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Page<ViewTaskResponse> getAssigneeTask(String userId, String page, String size) {
+    public Page<ViewTaskResponse> getUserTasks(String userId, String taskRole, String page, String size) {
+        var currentAdmin = getCurrentUser();
+        validationService.validateByAdminRole(currentAdmin);
+
         Pageable pageable = PageRequest.of(
                 Integer.parseInt(page), Integer.parseInt(size), Sort.by(Sort.Direction.ASC, "id")
         );
 
-        return taskRepository.findByAssigneeId(Long.parseLong(userId), pageable).map(task -> {
-                List<CommentDTO> commentDTOList = createCommentDTOList(task);
-
-                return createViewTaskResponse(task, commentDTOList);
-        });
+        switch (taskRole) {
+            case "author" -> {
+                return getAuthorTasks(Long.parseLong(userId), pageable);
+            }
+            case "assignee" -> {
+                return getAssigneeTasks(Long.parseLong(userId), pageable);
+            }
+            default -> {
+                log.error("Ошибка получения списка задач пользователя {}, роль пользователя {}.", userId, taskRole);
+                throw new NoSuchTaskMaintainer("Ошибка в указании роли пользователя в задаче. Обратитесь в тех.поддержку");
+            }
+        }
     }
 
     private Task update(TaskRequest taskRequest, Task taskToUpdate, User taskAuthor, User taskAssignee) {
@@ -183,6 +195,22 @@ public class TaskServiceImpl implements TaskService {
                 .assignee(taskAssignee)
                 .date(new Date())
                 .build();
+    }
+
+    private Page<ViewTaskResponse> getAssigneeTasks(long userId, Pageable pageable) {
+        return taskRepository.findByAssigneeId(userId, pageable).map(task -> {
+            List<CommentDTO> commentDTOList = createCommentDTOList(task);
+
+            return createViewTaskResponse(task, commentDTOList);
+        });
+    }
+
+    private Page<ViewTaskResponse> getAuthorTasks(long userId, Pageable pageable) {
+        return taskRepository.findByAuthorId(userId, pageable).map(task -> {
+            List<CommentDTO> commentDTOList = createCommentDTOList(task);
+
+            return createViewTaskResponse(task, commentDTOList);
+        });
     }
 
     private List<CommentDTO> createCommentDTOList(Task task) {

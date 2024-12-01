@@ -11,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("api/v1/app")
 @RequiredArgsConstructor
@@ -40,12 +38,13 @@ public class AppController {
         return ResponseEntity.ok(taskService.getTask(taskId));
     }
 
-    @GetMapping("/get-assignee-tasks")
+    @GetMapping("/get-user-tasks")
     public ResponseEntity<Page<ViewTaskResponse>> getUserTasks(
             @RequestParam String userId,
+            @RequestParam String taskRole,
             @RequestParam(defaultValue = "0") String page,
             @RequestParam(defaultValue = "10") String size
     ) {
-        return ResponseEntity.ok(taskService.getAssigneeTask(userId, page, size));
+        return ResponseEntity.ok(taskService.getUserTasks(userId, taskRole, page, size));
     }
 }

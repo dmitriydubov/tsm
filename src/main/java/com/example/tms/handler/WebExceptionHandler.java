@@ -51,6 +51,11 @@ public class WebExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex, webRequest);
     }
 
+    @ExceptionHandler(value = NoSuchTaskMaintainer.class)
+    public ResponseEntity<ErrorResponseBody> noSuchTaskMaintainerHandler(NoSuchTaskMaintainer ex, WebRequest webRequest) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex, webRequest);
+    }
+
     private ResponseEntity<ErrorResponseBody> buildResponse(HttpStatus httpStatus, Exception ex, WebRequest webRequest) {
         ErrorResponseBody responseBody = new ErrorResponseBody(ex.getMessage(), webRequest.getDescription(false));
         return ResponseEntity.status(httpStatus).body(responseBody);
