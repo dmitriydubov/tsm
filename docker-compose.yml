@@ -75,24 +75,29 @@ services:
     networks:
       - default
 
-  exporter:
-    container_name: exporter
-    image: prometheuscommunity/postgres-exporter:v0.10.1
-    environment:
-      DATA_SOURCE_URI: "postgres:5432/tmsdb?sslmode=disable"
-      DATA_SOURCE_USER: "postgres"
-      DATA_SOURCE_PASS: "postgres"
-      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
     volumes:
-      - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9187:9187"
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 500M
+      - "9090:9090"
+    environment:
+      - TZ=Europe/Moscow
+    networks:
+      - default
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - TZ=Europe/Moscow
+    depends_on:
+      - prometheus
     networks:
       - default
 
@@ -130,6 +135,9 @@ services:
       - SPRING_JPA_OPEN_IN_VIEW=true
       - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
       - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED=true
     networks:
       - default
     depends_on:

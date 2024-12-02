@@ -33,3 +33,17 @@ spring:
         format_sql: true
     open-in-view: true
     defer-datasource-initialization: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    prometheus:
+      enabled: true
+
