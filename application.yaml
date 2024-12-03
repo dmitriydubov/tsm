@@ -34,6 +34,10 @@ spring:
     open-in-view: true
     defer-datasource-initialization: true
 
+#springdoc:
+#  swagger-ui:
+#    path: /docs/swagger-ui.html
+
 management:
   endpoints:
     web:

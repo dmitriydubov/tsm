@@ -11,6 +11,11 @@ import org.springframework.data.domain.Page;
 
 public interface TaskService {
 
+    String checkServerConnection(
+            @Valid @NotEmpty @Pattern(regexp = "(ping)", message = "Тестовый запрос должен состоять из слова 'ping'")
+            String pingMessage
+    );
+
     TaskResponse createTask(@Valid TaskRequest taskRequest);
 
     TaskResponse removeTask(@Valid TaskRemoveRequest taskRemoveRequest);

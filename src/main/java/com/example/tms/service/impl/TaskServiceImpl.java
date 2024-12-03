@@ -39,6 +39,17 @@ public class TaskServiceImpl implements TaskService {
     private final ValidationService validationService;
 
     @Override
+    public String checkServerConnection(
+            @Valid @NotEmpty @Pattern(regexp = "(ping)", message = "Тестовый запрос должен состоять из слова 'ping'")
+            String pingMessage
+    ) {
+        if (pingMessage.equals("ping")) {
+            return "pong";
+        }
+        return "";
+    }
+
+    @Override
     @Transactional
     public TaskResponse createTask(@Valid TaskRequest taskRequest) {
         var currentAdmin = getCurrentUser();
@@ -91,7 +102,7 @@ public class TaskServiceImpl implements TaskService {
             updatedTask = update(taskRequest, taskToUpdate, currentUser, taskAssignee);
         } else {
             validationService.validateTaskByAssignee(currentUser, taskId);
-            updatedTask = update(taskRequest, taskToUpdate);
+            updatedTask = update(taskRequest, taskToUpdate, currentUser);
         }
 
         return new TaskResponse(
@@ -144,7 +155,7 @@ public class TaskServiceImpl implements TaskService {
             taskToUpdate.setStatus(getStatusFromTaskRequest(taskRequest));
         }
         taskToUpdate.setPriority(getPriorityFromTaskRequest(taskRequest));
-        taskToUpdate.getComments().add((Comment.builder().message(taskRequest.comment()).date(new Date()).build()));
+        taskToUpdate.getComments().add((Comment.builder().message(taskRequest.comment()).date(new Date()).user(taskAuthor).build()));
         taskToUpdate.setAuthor(taskAuthor);
         taskToUpdate.setAssignee(taskAssignee);
         taskToUpdate.setDate(new Date());
@@ -153,12 +164,12 @@ public class TaskServiceImpl implements TaskService {
         return savedTask;
     }
 
-    private Task update(TaskRequest taskRequest, Task taskToUpdate) {
+    private Task update(TaskRequest taskRequest, Task taskToUpdate, User currentUser) {
         Task savedTask;
         if (taskRequest.status() != null && !taskRequest.status().isEmpty()) {
             taskToUpdate.setStatus(getStatusFromTaskRequest(taskRequest));
         }
-        taskToUpdate.getComments().add(Comment.builder().message(taskRequest.comment()).date(new Date()).build());
+        taskToUpdate.getComments().add(Comment.builder().message(taskRequest.comment()).date(new Date()).user(currentUser).build());
 
         savedTask = taskRepository.save(taskToUpdate);
         return savedTask;
@@ -183,7 +194,7 @@ public class TaskServiceImpl implements TaskService {
     private Task createNewTask(TaskRequest taskRequest, User currentAdmin, User taskAssignee) {
         Set<Comment> comments = new HashSet<>();
         if (taskRequest.comment() != null && !taskRequest.comment().isEmpty()) {
-            comments.add(Comment.builder().message(taskRequest.comment()).date(new Date()).build());
+            comments.add(Comment.builder().message(taskRequest.comment()).date(new Date()).user(currentAdmin).build());
         }
         return Task.builder()
                 .title(taskRequest.title())

@@ -5,7 +5,10 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -30,6 +33,10 @@ public class Comment {
     @ManyToMany(mappedBy = "comments")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Task> tasks = new HashSet<>();
+
+    @ManyToOne(cascade = {CascadeType.PERSIST})
+    @JoinColumn(nullable = false)
+    private User user;
 
     @Override
     public boolean equals(Object o) {
