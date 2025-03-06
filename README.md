@@ -1,2 +1,2 @@
 # TMS
-Task managment system. Symply organize your deadealsls. Swagger and Open Api include. 
+Task managment system. Symply organize your daily tasks. Swagger and Open Api include. 
